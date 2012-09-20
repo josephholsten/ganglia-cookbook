@@ -2,7 +2,6 @@
 
 action :enable do
 
-  #script
   template "/usr/local/bin/#{new_resource.script_name}-ganglia" do
     source "ganglia/#{new_resource.script_name}.gmetric.erb"
     owner "root"
@@ -11,13 +10,13 @@ action :enable do
     variables :options => new_resource.options
   end
 
-  #cron
-  template "/etc/cron.d/#{new_resource.script_name}-ganglia" do
-    source "ganglia/#{new_resource.script_name}.cron.erb"
-    owner "root"
-    group "root"
-    mode "644"
-    variables :options => new_resource.options
+  cron "#{new_resource.script_name}-ganglia" do
+    minute new_resource.minute
+    hour new_resource.hour
+    day new_resource.day
+    month new_resource.month 
+    weekday new_resource.weekday
+    command "/usr/local/bin/#{new_resource.script_name}-ganglia"
   end
 
 end
@@ -28,7 +27,7 @@ action :disable do
     action :delete
   end
 
-  file "/etc/cron.d/#{new_resource.script_name}-ganglia" do
+  cron "#{new_resource.script_name}-ganglia" do
     action :delete
   end
 

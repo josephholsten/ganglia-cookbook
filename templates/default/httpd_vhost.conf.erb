@@ -1,0 +1,22 @@
+<VirtualHost *:<%= node['ganglia']['http_port'] %>>
+  ServerAdmin     <%= node['ganglia']['sysadmin_email'] %>
+  ServerName      <%= node['fqdn'] %>
+  ServerAlias     ganglia ganglia.<%= node.chef_environment =~ /^_default$/ ? "default" : node.chef_environment %>.<%= @public_domain %>
+  DocumentRoot    <%= node['ganglia']['docroot'] %>
+  CustomLog       <%= node['ganglia']['log_dir'] %>/apache_access.log combined
+  ErrorLog        <%= node['ganglia']['log_dir'] %>/apache_error.log
+
+  <Location />
+    AuthName "Ganglia Server"
+<% case node['ganglia']['server_auth_method'] -%>
+<% when "openid" -%>
+    AuthType OpenID
+    require user <%= node['apache']['allowed_openids'].join(' ') %>
+    AuthOpenIDDBLocation <%= node['apache']['mod_auth_openid']['dblocation'] %>
+<% else -%>
+    AuthType Basic
+    AuthUserFile "<%= node['ganglia']['conf_dir'] %>/htpasswd.users"
+    require valid-user
+<% end -%>
+  </Location>
+</VirtualHost>

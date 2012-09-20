@@ -3,7 +3,12 @@ include_recipe "iptables"
 iptables_rule "http"
 iptables_rule "https"
 
-workers = search(:node, "*:*")  || []
+workers = if Chef::Config[:solo]
+  Chef::Log.warn("This recipe uses search. Chef Solo does not support search.")
+  []
+else
+  search(:node, "*:*")
+end
 subnets = []
 
 workers.each do |w|

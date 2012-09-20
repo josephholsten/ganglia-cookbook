@@ -17,7 +17,7 @@
 # limitations under the License.
 #
 
-case node[:platform]
+case node['platform']
 when "ubuntu", "debian"
   package "ganglia-monitor"
 when "redhat", "centos", "fedora"
@@ -25,7 +25,7 @@ when "redhat", "centos", "fedora"
 
   execute "copy ganglia-monitor init script" do
     command "cp " +
-      "/usr/src/ganglia-#{node[:ganglia][:version]}/gmond/gmond.init " +
+      "/usr/src/ganglia-#{node['ganglia']['version']}/gmond/gmond.init " +
       "/etc/init.d/ganglia-monitor"
     not_if "test -f /etc/init.d/ganglia-monitor"
   end
@@ -35,24 +35,34 @@ end
 
 directory "/etc/ganglia"
 
-case node[:ganglia][:unicast]
+mon_hosts = [ "127.0.0.1" ]
+case node['ganglia']['unicast']
 when true
-  host = search(:node, "role:#{node['ganglia']['server_role']} AND chef_environment:#{node.chef_environment}").map {|node| node.ipaddress}
-  if host.empty? 
-     host = "127.0.0.1"
+  Chef::Log.info("Connecting to ganglia in unicast mode")
+  if node.run_list.roles.include?(node['ganglia']['server_role'])
+    mon_hosts << node['ipaddress']
+  elsif Chef::Config[:solo]
+    Chef::Log.warn("#{cookbook_name}::#{recipe_name} is intended for use with Chef Server, defaulting to 127.0.0.1 for ganglia host.")
+  elsif node['ganglia']['multi_environment_monitoring']
+    search(:node, "role:#{node['ganglia']['server_role']}") do |n|
+      mon_hosts << n['ipaddress']
+    end
+  else
+    search(:node, "role:#{node['ganglia']['server_role']} AND chef_environment:#{node.chef_environment}") do |n|
+      mon_hosts << n['ipaddress']
+    end
   end
-  template "/etc/ganglia/gmond.conf" do
-    source "gmond_unicast.conf.erb"
-    variables( :cluster_name => node[:ganglia][:cluster_name],
-               :host => host )
-    notifies :restart, "service[ganglia-monitor]"
-  end
+  templ = "gmond_unicast.conf.erb"
 when false
-  template "/etc/ganglia/gmond.conf" do
-    source "gmond.conf.erb"
-    variables( :cluster_name => node[:ganglia][:cluster_name] )
-    notifies :restart, "service[ganglia-monitor]"
-  end
+  Chef::Log.info("Connecting to ganglia in multicast mode")
+  templ = "gmond.conf.erb"
+end
+
+template "/etc/ganglia/gmond.conf" do
+  source templ
+  variables( :cluster_name => node['ganglia']['cluster_name'],
+             :host => mon_hosts.last )
+  notifies :restart, "service[ganglia-monitor]"
 end
 
 service "ganglia-monitor" do
