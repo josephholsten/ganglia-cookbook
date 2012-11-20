@@ -22,6 +22,8 @@ action :enable do
     notifies :restart, resources(:service => "ganglia-monitor")
   end
 
+  new_resource.updated_by_last_action(true)
+
 end
 
 action :disable do
@@ -35,5 +37,7 @@ action :disable do
     action :delete
     notifies :restart, resources(:service => "ganglia-monitor")
   end
+
+  new_resource.updated_by_last_action(true)
 
 end

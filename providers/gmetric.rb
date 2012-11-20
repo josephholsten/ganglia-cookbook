@@ -20,6 +20,8 @@ action :enable do
     variables :options => new_resource.options
   end
 
+  new_resource.updated_by_last_action(true)
+
 end
 
 action :disable do
@@ -31,5 +33,7 @@ action :disable do
   file "/etc/cron.d/#{new_resource.script_name}-ganglia" do
     action :delete
   end
+
+  new_resource.updated_by_last_action(true)
 
 end
