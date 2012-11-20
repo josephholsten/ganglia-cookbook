@@ -17,10 +17,10 @@
 # limitations under the License.
 #
 
-case node['platform']
-when "ubuntu", "debian"
+case node['platform_family']
+when "debian"
   package "ganglia-monitor"
-when "redhat", "centos", "fedora"
+when "rhel", "fedora"
   include_recipe "ganglia::source"
 
   execute "copy ganglia-monitor init script" do

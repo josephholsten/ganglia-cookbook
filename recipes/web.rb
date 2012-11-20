@@ -1,7 +1,7 @@
 directory "/etc/ganglia-webfrontend"
 
-case node['platform']
-when "ubuntu", "debian"
+case node['platform_family']
+when "debian"
   package "ganglia-webfrontend"
 
   link "/etc/apache2/sites-enabled/ganglia" do
@@ -9,7 +9,7 @@ when "ubuntu", "debian"
     notifies :restart, "service[apache2]"
   end
 
-when "redhat", "centos", "fedora"
+when "rhel", "fedora"
   package "httpd"
   package "php"
   include_recipe "ganglia::source"
@@ -23,7 +23,7 @@ when "redhat", "centos", "fedora"
 end
 
 service "apache2" do
-  service_name "httpd" if platform?( "redhat", "centos", "fedora" )
+  service_name "httpd" if platform_family?( "rhel", "fedora" )
   supports :status => true, :restart => true, :reload => true
   action [ :enable, :start ]
 end

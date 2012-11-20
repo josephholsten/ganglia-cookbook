@@ -1,4 +1,4 @@
-if platform?( "redhat", "centos", "fedora" )
+if platform_family?( "rhel", "fedora" )
   package "apr-devel"
   package "libconfuse-devel"
   package "expat-devel"
@@ -40,6 +40,6 @@ link "/usr/lib/ganglia" do
   to "/usr/lib64/ganglia"
   only_if do
     node['kernel']['machine'] == "x86_64" and
-      platform?( "redhat", "centos", "fedora" )
+      platform_family?( "rhel", "fedora" )
   end
 end

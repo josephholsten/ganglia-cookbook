@@ -1,7 +1,7 @@
-case node['platform']
-when "ubuntu", "debian"
+case node['platform_family']
+when "debian"
   package "gmetad"
-when "redhat", "centos", "fedora"
+when "rhel", "fedora"
   include_recipe "ganglia::source"
   execute "copy gmetad init script" do
     command "cp " +
